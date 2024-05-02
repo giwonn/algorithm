@@ -1,82 +1,81 @@
 const fs = require('fs');
 const input = fs.readFileSync("/dev/stdin").toString().trim().split('\n');
 
-    // let input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
-    const [N, M, K] = input.shift().split(' ').map(Number);
-    //파이어볼을 인덱스에 맞게 저장.
-    const FIREBALL = input.map(v => v.split(' ').map(Number).map(v => {
-        v[0] -= 1;
-        v[1] -= 1;
-        return v;
-    }));
-    //3차원 배열 생성.
-    let MAP = Array.from({length: N}, () =>
-        Array.from({length: N}).map(() => [])
-    );
-    // 8방향
-    const dx = [-1, -1, 0, 1, 1, 1, 0, -1];
-    const dy = [0, 1, 1, 1, 0, -1, -1, -1];
-    // 파이어볼 4분할시 방향
-    const goX = [1, 3, 5, 7];
-    const goPlus = [0, 2, 4, 6];
-    // 파이어볼 이동.
-    const FillMap = () => {
-        while (FIREBALL.length) {
-            let [X, Y, MASS, SPEED, DIR] = FIREBALL.pop();
-            // 음수를 대비해 +N 을 진행한 후에 다시 %N
-            X = (X + (SPEED * dx[DIR]) % N + N) % N;
-            Y = (Y + (SPEED * dy[DIR]) % N + N) % N;
-            // MAP에 추가
-            MAP[X][Y].push([X, Y, MASS, SPEED, DIR]);
+// n: NxN 격자
+// m: 파이어볼 개수
+// k: K번 이동
+const [n, m, k] = input.shift().trim().split(' ').map(Number)
 
-        }
-    };
-    // 파이어볼 이동 후 함수.
-    const Divide = () => {
-        for (let i = 0; i < N; i++) {
-            for (let j = 0; j < N; j++) {
-                // 만약 같은 곳에 파이어볼이 2개 이상일 경우
-                if (MAP[i][j].length > 1) {
-                    let [SumMass, SumSpeed, cntEven, cnt] = [0, 0, 0, MAP[i][j].length];
-                    while (MAP[i][j].length) {
-                        // 파이어볼의 질량과 속도를 모두 더함.
-                        const PopItem = MAP[i][j].pop();
-                        SumMass += PopItem[2];
-                        SumSpeed += PopItem[3];
-                        // 파이어볼의 방향이 모두 짝수인지 모두 홀수인지 확인.
-                        cntEven = PopItem[4] % 2 === 0 ? cntEven + 1 : cntEven;
-                    }
-                    // 4분할 방향 결정.
-                    let Splash = cntEven === cnt || cntEven === 0 ? goPlus : goX;
-                    // 만약 질량이 0이 아니면.
-                    if (Math.floor(SumMass / 5)) {
-                        for (const direction of Splash) {
-                            // 파이어볼 배열에 저장.
-                            FIREBALL.push([i, j, Math.floor(SumMass / 5), Math.floor(SumSpeed / cnt), direction]);
-                        }
-                    }
-                }
-                // 만약 해당 위치에 파이어볼이 1개라면.
-                if (MAP[i][j].length === 1) {
-                    // MAP에서 꺼낸 후 파이어볼 배열에 추가.
-                    const PopItem = MAP[i][j].pop();
-                    FIREBALL.push(PopItem);
+// fireball: [r1(행=y축), c1(열=x축), m(질량), s(속력), d(방향)]
+let fireballs = input.map(item => item.trim().split(' ').map(Number).map(item => {
+  // 인덱스에 맞추는 작업. (1,1)은 1행 1열이므로 배열에선 (0,0)
+  item[0] -= 1
+  item[1] -= 1
+  return item
+}))
 
-                }
-            }
-        }
-    };
+// 맵 그리기 (칸마다 여러개의 파이어볼이 들어갈 수 있으므로 배열로 초기화)
+const map = Array.from({ length: n }, () => Array.from({ length: n }).map(() => []))
 
-    // 메인 함수.
-    const solution = () => {
-        // K번 반복
-        for (let i = 0; i < K; i++) {
-            FillMap();
-            Divide();
+// 인덱스(0 ~ 7방향)별 이동 방향
+const dr = [-1, -1, 0, 1, 1, 1, 0, -1]
+const dc = [0, 1, 1, 1, 0, -1, -1, -1]
+
+// 파이어볼 이동
+const movement = () => {
+  fireballs.forEach(([row, col, mass, speed, direction]) => {
+    row = row + (speed * dr[direction]) % n
+    col = col + (speed * dc[direction]) % n
+    
+    // n=7, row=7일 경우 실제 인덱스는 row[7]===row[0]이기 때문에 n으로 나눈 나머지를 구하면 됨
+    if (row >= n) row %= n
+    // n=7, row=-1일 경우 실제 인덱스는 row[-1]===row[6]이기 때문에 n과 row를 더한 결과가 실제 인덱스가 됨
+    if (row < 0) row = n + row
+
+    if (col >= n) col %= n
+    if (col < 0) col = n + col
+
+    // map에 추가
+    map[row][col].push([row, col, mass, speed, direction])
+  })
+}
+
+// 이동 후 파이어볼 처리
+const process = () => {
+  const arr = []
+    for (let i=0; i<n; i++) {
+      for (let j=0; j<n; j++) {
+        const sameFireballs = map[i][j]
+        if (sameFireballs.length > 1) {
+          const [mass, speed] = sameFireballs.reduce((acc, fireball) => {
+            acc[0] += fireball[2]
+            acc[1] += fireball[3]
+            return acc
+          }, [0, 0])
+
+          // 2-3. 방향이 모두 홀수이거나 짝수면 [0, 2, 4, 6], 아니면 [1, 3, 5, 7]
+          const remainder = sameFireballs[0][4] % 2 // 홀짝여부 미리 계산
+          const directions = sameFireballs.every(item => remainder === item[4] % 2) ? [0, 2, 4, 6] : [1, 3, 5, 7]
+          
+          if (Math.floor(mass / 5) !== 0) {
+            const newFireballs = directions.map(direction => [i, j, Math.floor(mass / 5), Math.floor(speed / sameFireballs.length), direction])
+            arr.push(...newFireballs)
+          }
         }
-        // reduce 함수를 이용해 질량을 더해줌.
-        return FIREBALL.reduce((acc, cur) => {
-            return acc + cur[2];
-        }, 0);
-    };
-    console.log(solution());
+
+        if (sameFireballs.length === 1) {
+          arr.push(sameFireballs[0])
+        }
+          
+        map[i][j] = []
+      }
+    }
+  fireballs = arr
+}
+
+for (let i = 0; i < k; i++) {
+  movement()
+  process()
+}
+
+console.log(fireballs.reduce((sum, cur) => sum + cur[2], 0))
