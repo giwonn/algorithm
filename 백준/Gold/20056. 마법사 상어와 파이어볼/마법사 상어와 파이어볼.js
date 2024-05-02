@@ -46,6 +46,8 @@ const process = () => {
     for (let i=0; i<n; i++) {
       for (let j=0; j<n; j++) {
         const sameFireballs = map[i][j]
+        if (sameFireballs.length === 0) continue
+        if (sameFireballs.length === 1) arr.push(sameFireballs[0])
         if (sameFireballs.length > 1) {
           const [mass, speed] = sameFireballs.reduce((acc, fireball) => {
             acc[0] += fireball[2]
@@ -61,10 +63,6 @@ const process = () => {
             const newFireballs = directions.map(direction => [i, j, Math.floor(mass / 5), Math.floor(speed / sameFireballs.length), direction])
             arr.push(...newFireballs)
           }
-        }
-
-        if (sameFireballs.length === 1) {
-          arr.push(sameFireballs[0])
         }
           
         map[i][j] = []
