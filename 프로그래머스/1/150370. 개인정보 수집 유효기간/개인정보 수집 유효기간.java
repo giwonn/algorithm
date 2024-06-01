@@ -12,11 +12,11 @@ class Solution {
         }
        
         List<Integer> answer = new ArrayList<>();
+        int todayTime = getTime(today);
+            
         for (int i=0; i<privacies.length; i++) {
             String[] dateAndTerm = privacies[i].split(" ");
-            int expireTime = getTime(dateAndTerm[0]) + termMap.get(dateAndTerm[1]) * 28;
-            
-            if (expireTime <= getTime(today)) answer.add(i+1);
+            if (getTime(dateAndTerm[0]) + termMap.get(dateAndTerm[1]) * 28 <= todayTime) answer.add(i+1);
         }
         return answer.stream().mapToInt(Integer::intValue).toArray();
     }
