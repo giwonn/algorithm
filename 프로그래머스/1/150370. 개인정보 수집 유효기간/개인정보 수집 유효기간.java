@@ -2,6 +2,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.stream.IntStream;
 
 class Solution {
     public int[] solution(String today, String[] terms, String[] privacies) {
@@ -11,14 +12,20 @@ class Solution {
             termMap.put(t[0], Integer.parseInt(t[1]));
         }
        
-        List<Integer> answer = new ArrayList<>();
+        List<Integer> expireList = new ArrayList<>();
         int todayTime = getTime(today);
             
         for (int i=0; i<privacies.length; i++) {
             String[] dateAndTerm = privacies[i].split(" ");
-            if (getTime(dateAndTerm[0]) + termMap.get(dateAndTerm[1]) * 28 <= todayTime) answer.add(i+1);
+            if (getTime(dateAndTerm[0]) + termMap.get(dateAndTerm[1]) * 28 <= getTime(today)) expireList.add(i+1);
         }
-        return answer.stream().mapToInt(Integer::intValue).toArray();
+        
+        int[] answer = new int[expireList.size()];
+        for(int i = 0; i < answer.length; i++) {
+        	answer[i] = expireList.get(i);
+        }
+
+        return answer;
     }
     
     private int getTime(String date) {
