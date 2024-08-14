@@ -1,19 +1,25 @@
 function solution(records) {
-  const nicknameMap = getUserNickname(records)
+  const nicknameMap = getUserNicknames(records);
+  const result = [];
 
-  return records.map(record => record.split(" "))
-    .filter(([action]) => action !== 'Change')
-    .map(([action, userId]) => {
-      const command = action === 'Enter' ? '들어왔습니다' : '나갔습니다'
-      return `${nicknameMap[userId]}님이 ${command}.`
-    })
+  for (const record of records) {
+    if (record.startsWith('Change')) continue
+
+    const [action, userId] = record.split(" ");
+    const command = action === 'Enter' ? '들어왔습니다' : '나갔습니다';
+
+    result.push(`${nicknameMap[userId]}님이 ${command}.`);
+  }
+
+  return result;
 }
 
-function getUserNickname(records) {
-  return records.map(record => record.split(" "))
-    .filter(([action]) => action !== 'Leave')
-    .reduce((obj, [_, userId, nickname]) => {
-      obj[userId] = nickname
-      return obj
-    }, {})
+function getUserNicknames(records) {
+  return records.reduce((obj, record) => {
+    if (record.startsWith('Enter') || record.startsWith('Change')) {
+      const [_, userId, nickname] = record.split(" ");
+      obj[userId] = nickname;
+    }
+    return obj;
+  }, {})
 }
