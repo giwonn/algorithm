@@ -13,9 +13,7 @@ public class Main {
 
 		for (int i = 0; i < T; i++) {
 			StringTokenizer st = new StringTokenizer(br.readLine());
-			int A = Integer.parseInt(st.nextToken());
-			int B = Integer.parseInt(st.nextToken());
-			bw.write(Integer.toString(A + B));
+			bw.write(Integer.toString(Integer.parseInt(st.nextToken()) + Integer.parseInt(st.nextToken())));
 			bw.newLine();
 		}
 		bw.flush();
