@@ -6,11 +6,9 @@ public class Main {
     public static void main(String args[]) throws Exception {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         
-        int[] arr = Arrays.stream(reader.readLine().split(" "))
+        int target = Arrays.stream(reader.readLine().split(" "))
             .mapToInt(Integer::parseInt)
-            .toArray();
-        int treeNum = arr[0];
-        int target = arr[1];
+            .toArray()[1];
         
         int[] trees = Arrays.stream(reader.readLine().split(" "))
             .mapToInt(Integer::parseInt)
@@ -24,7 +22,7 @@ public class Main {
             long sum = 0;
             
             for (int treeHeight : trees) {
-                if (treeHeight - mid <= 0) continue;
+                if (treeHeight <= mid) continue;
                 sum += treeHeight - mid;
             }
             
